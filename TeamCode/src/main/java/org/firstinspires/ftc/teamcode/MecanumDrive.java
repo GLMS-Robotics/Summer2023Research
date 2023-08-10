@@ -27,6 +27,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -47,15 +48,15 @@ import java.util.List;
 @Config
 public final class MecanumDrive {
     // drive model parameters
-    public static double IN_PER_TICK = 0;
-    public static double LATERAL_IN_PER_TICK = 1;
+    public static double IN_PER_TICK = 126.0/234965.5;
+    public static double LATERAL_IN_PER_TICK = 126.0/234965.5;//1;
     public static double LATERAL_MULTIPLIER = IN_PER_TICK / LATERAL_IN_PER_TICK;
-    public static double TRACK_WIDTH_TICKS = 0;
+    public static double TRACK_WIDTH_TICKS = 39731.26825913644;
 
     // feedforward parameters in tick units
-    public static double kS = 0;
-    public static double kV = 0;
-    public static double kA = 0;
+    public static double kS = 0.9646047524992474;
+    public static double kV = 0.18677119941603376;
+    public static double kA = 0.05;
 
     // path profile parameters
     public static double MAX_WHEEL_VEL = 50;
@@ -67,9 +68,9 @@ public final class MecanumDrive {
     public static double MAX_ANG_ACCEL = Math.PI;
 
     // path controller gains
-    public static double AXIAL_GAIN = 0.0;
-    public static double LATERAL_GAIN = 0.0;
-    public static double HEADING_GAIN = 0.0; // shared with turn
+    public static double AXIAL_GAIN = 0.0005;
+    public static double LATERAL_GAIN = 0.005;
+    public static double HEADING_GAIN = 0.005; // shared with turn
 
     public static double AXIAL_VEL_GAIN = 0.0;
     public static double LATERAL_VEL_GAIN = 0.0;
@@ -176,15 +177,18 @@ public final class MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
-        leftBack = hardwareMap.get(DcMotorEx.class, "leftBack");
-        rightBack = hardwareMap.get(DcMotorEx.class, "rightBack");
-        rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
+        leftFront = hardwareMap.get(DcMotorEx.class, "FLDrive");
+        leftBack = hardwareMap.get(DcMotorEx.class, "BLDrive");
+        rightBack = hardwareMap.get(DcMotorEx.class, "BRDrive");
+        rightFront = hardwareMap.get(DcMotorEx.class, "FRDrive");
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftFront.setDirection(DcMotorEx.Direction.REVERSE);
+        leftBack.setDirection(DcMotorEx.Direction.REVERSE);
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -194,7 +198,7 @@ public final class MecanumDrive {
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
-        localizer = new DriveLocalizer();
+        localizer = new ThreeDeadWheelLocalizer(hardwareMap, IN_PER_TICK);
     }
 
     public void setDrivePowers(PoseVelocity2d powers) {

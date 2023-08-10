@@ -10,13 +10,14 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.util.Encoder;
 import org.firstinspires.ftc.teamcode.util.Localizer;
+import org.firstinspires.ftc.teamcode.util.OverflowEncoder;
 import org.firstinspires.ftc.teamcode.util.RawEncoder;
 
 @Config
 public final class ThreeDeadWheelLocalizer implements Localizer {
-    public static double PAR0_Y_TICKS = 0.0;
-    public static double PAR1_Y_TICKS = 0.0;
-    public static double PERP_X_TICKS = 0.0;
+    public static double PAR0_Y_TICKS = -10954.330923587728;
+    public static double PAR1_Y_TICKS = 11101.197145661283;
+    public static double PERP_X_TICKS = 3438.3651867695253;
 
     public final Encoder par0, par1, perp;
 
@@ -25,9 +26,9 @@ public final class ThreeDeadWheelLocalizer implements Localizer {
     private int lastPar0Pos, lastPar1Pos, lastPerpPos;
 
     public ThreeDeadWheelLocalizer(HardwareMap hardwareMap, double inPerTick) {
-        par0 = new RawEncoder(hardwareMap.get(DcMotorEx.class, "par0"));
-        par1 = new RawEncoder(hardwareMap.get(DcMotorEx.class, "par1"));
-        perp = new RawEncoder(hardwareMap.get(DcMotorEx.class, "perp"));
+        par0 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "BLDrive")));
+        par1 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "BRDrive")));
+        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "FLDrive")));
 
         lastPar0Pos = par0.getPositionAndVelocity().position;
         lastPar1Pos = par1.getPositionAndVelocity().position;
