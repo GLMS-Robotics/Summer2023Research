@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import androidx.annotation.NonNull;
 
@@ -27,12 +27,12 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.ThreeDeadWheelLocalizer;
 import org.firstinspires.ftc.teamcode.util.LogFiles;
 import org.firstinspires.ftc.teamcode.util.Encoder;
 import org.firstinspires.ftc.teamcode.util.Localizer;
@@ -46,7 +46,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Config
-public final class MecanumDrive {
+public final class MecanumDrive extends Subsystem {
     // drive model parameters
     public static double IN_PER_TICK = 126.0/234965.5;
     public static double LATERAL_IN_PER_TICK = 126.0/234965.5;//1;
@@ -54,27 +54,29 @@ public final class MecanumDrive {
     public static double TRACK_WIDTH_TICKS = 39731.26825913644;
 
     // feedforward parameters in tick units
-    public static double kS = 0.9646047524992474;
-    public static double kV = 0.18677119941603376;
-    public static double kA = 0.05;
+    public static double kS = 0.9646047524992474 * IN_PER_TICK;
+    public static double kV = 0.18677119941603376 * IN_PER_TICK;
+    public static double kA = 0.05 * IN_PER_TICK;
 
     // path profile parameters
-    public static double MAX_WHEEL_VEL = 50;
-    public static double MIN_PROFILE_ACCEL = -30;
-    public static double MAX_PROFILE_ACCEL = 50;
+    //public static double MAX_WHEEL_VEL = 50;  //Wheels are 100mm diameter, 312 RPM motors
+    // 312 RPM * 1M/60S
+    public static double MAX_WHEEL_VEL = (312.0 / 60.0) * (100 / 25.4 * Math.PI);
+    public static double MIN_PROFILE_ACCEL = -30;//-30
+    public static double MAX_PROFILE_ACCEL = 50;//50
 
     // turn profile parameters
     public static double MAX_ANG_VEL = Math.PI; // shared with path
     public static double MAX_ANG_ACCEL = Math.PI;
 
     // path controller gains
-    public static double AXIAL_GAIN = 0.0005;
-    public static double LATERAL_GAIN = 0.005;
-    public static double HEADING_GAIN = 0.005; // shared with turn
+    public static double AXIAL_GAIN = 5;//0.0005;
+    public static double LATERAL_GAIN = 5;//0.005;
+    public static double HEADING_GAIN = 5;//0.005; // shared with turn
 
-    public static double AXIAL_VEL_GAIN = 0.0;
-    public static double LATERAL_VEL_GAIN = 0.0;
-    public static double HEADING_VEL_GAIN = 0.0; // shared with turn
+    public static double AXIAL_VEL_GAIN = 0.001;
+    public static double LATERAL_VEL_GAIN = 0.005;
+    public static double HEADING_VEL_GAIN = 0.005; // shared with turn
 
     public final MecanumKinematics kinematics = new MecanumKinematics(
             IN_PER_TICK * TRACK_WIDTH_TICKS, LATERAL_MULTIPLIER);
@@ -103,6 +105,28 @@ public final class MecanumDrive {
     public final double inPerTick = IN_PER_TICK;
 
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
+
+    /**
+     * Method that runs each time the opmode loops.
+     * Usually, you will want to output telemetry here (encoder values and such).
+     * Warning: Actions may be running, so generally you shouldn't control
+     * actuators here, unless you are doing something fun like a state machine
+     * (in which case you probably shouldn't control actuators outside of this method...).
+     * Instead, have your autonomous run actions, and your teleop schedule actions or run methods
+     * directly.
+     *
+     * @param p Telemetry packet for sending data to the driver hub / dashboard
+     */
+    @Override
+    public void periodic(TelemetryPacket p) {
+        updatePoseEstimate();
+
+        p.put("x", pose.position.x);
+        p.put("y", pose.position.y);
+        p.put("heading", pose.heading);
+    }
+
+
 
     public class DriveLocalizer implements Localizer {
         public final Encoder leftFront, leftRear, rightRear, rightFront;
@@ -177,18 +201,12 @@ public final class MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        leftFront = hardwareMap.get(DcMotorEx.class, "FLDrive");
-        leftBack = hardwareMap.get(DcMotorEx.class, "BLDrive");
-        rightBack = hardwareMap.get(DcMotorEx.class, "BRDrive");
-        rightFront = hardwareMap.get(DcMotorEx.class, "FRDrive");
+        leftFront = hardwareMap.get(DcMotorEx.class, "FL");
+        leftBack = hardwareMap.get(DcMotorEx.class, "BL");
+        rightBack = hardwareMap.get(DcMotorEx.class, "BR");
+        rightFront = hardwareMap.get(DcMotorEx.class, "FR");
 
-        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        leftFront.setDirection(DcMotorEx.Direction.REVERSE);
-        leftBack.setDirection(DcMotorEx.Direction.REVERSE);
+        setMotorSettings();
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -200,6 +218,28 @@ public final class MecanumDrive {
 
         localizer = new ThreeDeadWheelLocalizer(hardwareMap, IN_PER_TICK);
     }
+
+    /**
+     * The Control System automatically resets all motor settings between op modes.
+     * We keep the same motor instances to keep encoder values and such,
+     * but settings like brake mode and reversed need to be re-set separately
+     * from motor initialization.
+     * <p>
+     * If these will differ between modes, you can set the settings in another method
+     * that appropriate opmodes call manually.
+     */
+    @Override
+    public void setMotorSettings() {
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftFront.setDirection(DcMotorEx.Direction.REVERSE);
+        leftBack.setDirection(DcMotorEx.Direction.REVERSE);
+    }
+
+
 
     public void setDrivePowers(PoseVelocity2d powers) {
         MecanumKinematics.WheelVelocities<Time> wheelVels = new MecanumKinematics(1).inverse(
@@ -409,7 +449,7 @@ public final class MecanumDrive {
         c.strokePolyline(xPoints, yPoints);
     }
 
-    private static void drawRobot(Canvas c, Pose2d t) {
+    public static void drawRobot(Canvas c, Pose2d t) {
         final double ROBOT_RADIUS = 9;
 
         c.setStrokeWidth(1);

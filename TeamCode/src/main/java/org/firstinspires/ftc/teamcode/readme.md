@@ -129,3 +129,26 @@ Note: Some names start with "Team" and others start with "team".  This is intent
 5)  Add:    include ':Team0417' to the "/settings.gradle" file.
     
 6)  Open up Android Studios and clean out any old files by using the menu to "Build/Clean Project""
+
+
+
+# Sam's Notes
+
+- Actions with multiple subsystems (sequential/parallel) can't be easily tied to subsystems with the current setup of Actions.
+- How to make subsystems that don't run regular teleop controls when an action is running?
+
+Idea 1: Action Scheduler
+- Part of opmode, not usually for autonomous use
+- Keeps track of active actions
+- Active actions have a list of subsystems
+- Could also enforce not double-scheduling a subsystem
+- Methods:
+  - isBusy(Subsystem s)
+  - cancelSubsystem(Subsystem s)?
+  - cancelAll()?
+  - schedule(Action, Subsystem[])
+- Scheduler opmode that runs scheduled actions
+- Just put this all in the base opmode?
+- Base auto opmode
+  - Also calls periodic run functions on each subsystem
+  - Probably make a custom version of ActionOpMode more similar to WPILib, where a function returns the action representing autonomous
