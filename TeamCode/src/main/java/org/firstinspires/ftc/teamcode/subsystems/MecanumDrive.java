@@ -38,13 +38,9 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.Localizer;
+import org.firstinspires.ftc.teamcode.PoseMessage;
 import org.firstinspires.ftc.teamcode.ThreeDeadWheelLocalizer;
-import org.firstinspires.ftc.teamcode.util.LogFiles;
-import org.firstinspires.ftc.teamcode.util.Encoder;
-import org.firstinspires.ftc.teamcode.util.Localizer;
-import org.firstinspires.ftc.teamcode.util.LynxFirmwareVersion;
-import org.firstinspires.ftc.teamcode.util.OverflowEncoder;
-import org.firstinspires.ftc.teamcode.util.RawEncoder;
 
 import java.lang.Math;
 import java.util.Arrays;
@@ -81,12 +77,9 @@ public final class MecanumDrive extends Subsystem {
         public double lateralGain = 5;//0.005;
         public double headingGain = 5;//0.005; // shared with turn
 
-        public double AXIAL_VEL_GAIN = 0.001;
-        public double LATERAL_VEL_GAIN = 0.005;
-        public double HEADING_VEL_GAIN = 0.005; // shared with turn
-        public double axialVelGain = 0.0;
-        public double lateralVelGain = 0.0;
-        public double headingVelGain = 0.0; // shared with turn
+        public double axialVelGain =  0.001;
+        public double lateralVelGain = 0.005;
+        public double headingVelGain = 0.005; // shared with turn
     }
 
     public static Params PARAMS = new Params();
@@ -226,7 +219,7 @@ public final class MecanumDrive extends Subsystem {
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
-        localizer = new ThreeDeadWheelLocalizer(hardwareMap, IN_PER_TICK);
+        localizer = new ThreeDeadWheelLocalizer(hardwareMap, PARAMS.inPerTick);
 
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
     }

@@ -49,7 +49,6 @@ public class Robot {
             // Problem: MecanumDrive initializes in its constructor, and also needs extra
             // parameter for starting location!
 
-
             subsystems = new Subsystem[] {
                     mecanumDrive,
                     lift,
