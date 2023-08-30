@@ -38,16 +38,4 @@ public abstract class Subsystem {
     public abstract void periodic(TelemetryPacket p);
 
 
-    /**
-     * The Control System automatically resets all motor settings between op modes.
-     * We keep the same motor instances to keep encoder values and such,
-     * but settings like brake mode and reversed need to be re-set separately
-     * from motor initialization.
-     *
-     * If these will differ between modes, you can set the settings in another method
-     * that appropriate opmodes call manually.
-     */
-    public abstract void setMotorSettings();
-
-
 }

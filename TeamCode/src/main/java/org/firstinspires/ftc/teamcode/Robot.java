@@ -30,40 +30,36 @@ public class Robot {
     // Also put an aray of them here
     public static Subsystem[] subsystems;
 
-
-    // We only want to initialize hardware once, so that encoders keep their positions
-    private static boolean setUp = false;
-
     /**
      * Set up the robot's hardware, if it isn't set up yet.
      */
     public static void initHardware(HardwareMap hardwareMap)
     {
-        if(!setUp)
-        {
-            mecanumDrive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
-            lift = new Lift(hardwareMap);
-            pivot = new Pivot(hardwareMap);
-            gripper = new Gripper(hardwareMap);
-            camera = new Camera(hardwareMap);
-            // Problem: MecanumDrive initializes in its constructor, and also needs extra
-            // parameter for starting location!
 
-            subsystems = new Subsystem[] {
-                    mecanumDrive,
-                    lift,
-                    pivot,
-                    gripper,
-                    camera
-            };
+        // We want to keep the current pose if this isn't our first op mode
+        Pose2d startPose;
+        if(mecanumDrive != null)
+            startPose = mecanumDrive.pose;
+        else
+            startPose = new Pose2d(0,0,0);
 
-            setUp = true;
-        }
+        mecanumDrive = new MecanumDrive(hardwareMap, startPose);
 
-        // Motor settings reset each opmode anyway, so set them every time
-        for (Subsystem subsystem : subsystems) {
-            subsystem.setMotorSettings();
-        }
+
+        lift = new Lift(hardwareMap);
+        pivot = new Pivot(hardwareMap);
+        gripper = new Gripper(hardwareMap);
+        camera = new Camera(hardwareMap);
+
+
+        subsystems = new Subsystem[] {
+                mecanumDrive,
+                lift,
+                pivot,
+                gripper,
+                camera
+        };
+
     }
 
 

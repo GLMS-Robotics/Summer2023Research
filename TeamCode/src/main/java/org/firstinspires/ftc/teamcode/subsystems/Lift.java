@@ -32,6 +32,14 @@ public class Lift extends Subsystem{
         // Set up motors etc
         motor = (DcMotorEx) hardwareMap.get(DcMotor.class, "Lift");
 
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // Max 2400
+
+        // PID parameters
+        motor.setVelocityPIDFCoefficients(vp, vi, vd, vf);
+        motor.setPositionPIDFCoefficients(pp);
+
     }
 
 
@@ -45,33 +53,11 @@ public class Lift extends Subsystem{
         p.put("Lift Power", motor.getPower());
 
         double s = Math.abs(motor.getVelocity());
-        if(s > maxSpeed)
-        {
+        if (s > maxSpeed) {
             maxSpeed = s;
             p.put("Lift Max Speed", maxSpeed);
         }
     }
-
-    /**
-     * The Control System automatically resets all motor settings between op modes.
-     * We keep the same motor instances to keep encoder values and such,
-     * but settings like brake mode and reversed need to be re-set separately
-     * from motor initialization.
-     * <p>
-     * If these will differ between modes, you can set the settings in another method
-     * that appropriate opmodes call manually.
-     */
-    @Override
-    public void setMotorSettings() {
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        // Max 2400
-
-        // PID parameters
-        motor.setVelocityPIDFCoefficients(vp, vi, vd, vf);
-        motor.setPositionPIDFCoefficients(pp);
-    }
-
 
     public void setSpeed(double speed)
     {
