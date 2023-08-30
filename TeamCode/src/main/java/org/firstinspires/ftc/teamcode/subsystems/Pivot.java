@@ -71,7 +71,7 @@ public class Pivot extends Subsystem {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidvel);
-        motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidvel);
+        motor.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, pidpos);
     }
 
 

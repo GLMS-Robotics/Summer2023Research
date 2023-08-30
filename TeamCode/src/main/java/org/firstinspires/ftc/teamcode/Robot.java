@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.subsystems.Camera;
 import org.firstinspires.ftc.teamcode.subsystems.Gripper;
 import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
@@ -23,6 +24,8 @@ public class Robot {
 
     public static Gripper gripper;
 
+    public static Camera camera;
+
 
     // Also put an aray of them here
     public static Subsystem[] subsystems;
@@ -42,6 +45,7 @@ public class Robot {
             lift = new Lift(hardwareMap);
             pivot = new Pivot(hardwareMap);
             gripper = new Gripper(hardwareMap);
+            camera = new Camera(hardwareMap);
             // Problem: MecanumDrive initializes in its constructor, and also needs extra
             // parameter for starting location!
 
@@ -50,7 +54,8 @@ public class Robot {
                     mecanumDrive,
                     lift,
                     pivot,
-                    gripper
+                    gripper,
+                    camera
             };
 
             setUp = true;
