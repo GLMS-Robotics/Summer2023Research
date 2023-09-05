@@ -8,7 +8,7 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name = "Right Autonomous", group = "Right")
+@Autonomous(name = "Right Autonomous", group = "Right", preselectTeleOp = "Field Oriented TeleOp")
 public class RightAutonomous extends ActionAutonomous{
     /**
      * Opmodes should define the action to be taken during autonomous here.
